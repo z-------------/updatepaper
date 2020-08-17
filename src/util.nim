@@ -17,7 +17,7 @@ proc pad*(s: string; n: int; c = '0'): string =
 proc pad*(s: int; n: int; c = '0'): string =
   pad($s, n, c)
 
-proc progressBar*(p: float64; c1 = '#'; c2 = '-'; l = 75): string =
+proc progressBar*(p: float64; l = 75; c1 = '#'; c2 = '-'): string =
   let lm = (l - 2 - 5).float64  # 2 for the [], 5 for _000%
   "[" & repeat(c1, (p * lm).round.int) & repeat(c2, ((1 - p) * lm).round.int) & "] " & pad((p * 100).round.int, 3, ' ') & "%"
 
