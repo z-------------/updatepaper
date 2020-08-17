@@ -90,26 +90,30 @@ var
   buf: array[BufLen, char]
   bytesRead = 0
   writeStream: FileStream
-let
-  bufPtr = buf.addr
-  response = client().get(url)
-  contentLength = response.headers["Content-Length"].parseInt
-  readStream = response.bodyStream
+let bufPtr = buf.addr
 
 try:
   writeStream = openFileStream(filenameTemp.rel, fmWrite)
 except IOError:
   die "Couldn't open write stream."
 
-while not readStream.atEnd:
-  bytesRead += readStream.readData(bufPtr, BufLen)
-  writeStream.writeData(bufPtr, BufLen)
-  stdout.write "\r", progressBar(bytesRead / contentLength, terminalWidth())
+try:
+  let
+    response = client().get(url)
+    contentLength = response.headers["Content-Length"].parseInt
+    readStream = response.bodyStream
 
-readStream.close()
-writeStream.close()
-isDownloadInProgress = false
-echo "Download complete."
+  while not readStream.atEnd:
+    bytesRead += readStream.readData(bufPtr, BufLen)
+    writeStream.writeData(bufPtr, BufLen)
+    stdout.write "\r", progressBar(bytesRead / contentLength, terminalWidth())
+
+  readStream.close()
+  writeStream.close()
+  isDownloadInProgress = false
+  echo "Download complete."
+except:
+  die "Error downloading."
 
 if args["--keep"]:  # keep any old paper-xxx.jar with same build number
   try:
