@@ -4,6 +4,7 @@ import strformat
 import streams
 import terminal
 import os
+import asyncdispatch
 import ./util
 import ./versionhistory
 import ./matchversion
@@ -116,34 +117,33 @@ logVerbose &"Writing to {filenameTemp}...";
 
 isDownloadInProgress = true
 
-const BufLen = 1 shl 15
-var
-  buf: array[BufLen, char]
-  bytesRead = 0
-let bufPtr = buf.addr
-
 try:
   writeStream = openFileStream(filenameTemp.rel, fmWrite)
 except IOError:
   die "Couldn't open write stream."
 
-try:
-  let
-    response = client().get(url)
-    contentLength = response.headers["Content-Length"].parseInt
-    readStream = response.bodyStream
+waitFor (proc () {.async.} =
+  try:
+    let
+      response = await asyncClient().get(url)
+      contentLength = response.contentLength
+      readStream = response.bodyStream
+    var bytesRead = 0
 
-  while not readStream.atEnd:
-    bytesRead += readStream.readData(bufPtr, BufLen)
-    writeStream.writeData(bufPtr, BufLen)
-    stdout.write "\r", progressBar(bytesRead / contentLength, terminalWidth())
+    while true:
+      let (hasMore, data) = await readStream.read()
+      bytesRead += data.len
+      writeStream.write(data)
+      stdout.write "\r", progressBar(bytesRead / contentLength, terminalWidth())
+      if not hasMore:
+        break
 
-  readStream.close()
-  writeStream.close()
-  isDownloadInProgress = false
-  echo "Download complete."
-except:
-  die "Error downloading."
+    writeStream.close()
+    isDownloadInProgress = false
+    echo "Download complete."
+  except:
+    die "Error downloading."
+)()
 
 if args["--keep"]:  # keep any old paper-xxx.jar with same build number
   try:
