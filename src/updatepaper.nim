@@ -85,7 +85,7 @@ logVerbose &"Writing to {filenameTemp}...";
 
 isDownloadInProgress = true
 
-const BufLen = 1 shl 10  # 1024
+const BufLen = 1 shl 15
 var
   buf: array[BufLen, char]
   bytesRead = 0
