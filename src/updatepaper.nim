@@ -33,7 +33,16 @@ Options:
 const MsgNoNewVersion = "No matching new version available."
 
 #
-# main
+# globals
+#
+
+var # needed by SIGINT (Ctrl-C) handler
+  isDownloadInProgress = false
+  filenameTemp: string
+  writeStream: FileStream
+
+#
+# parse options
 #
 
 let
@@ -44,7 +53,23 @@ let
 
   logVerbose = getLogger(isVerbose)
 
-var isDownloadInProgress = false
+#
+# signal handlers
+#
+
+setControlCHook() do:
+  if isDownloadInProgress:
+    writeStream.close()
+    try:
+      removeFile(filenameTemp.rel)
+      logVerbose &"Deleted {filenameTemp}."
+    except:
+      die &"Failed to delete {filenameTemp}."
+  quit()
+
+#
+# main
+#
 
 # get matching major
 
@@ -78,7 +103,7 @@ let buildNumber =
 let
   url = &"https://papermc.io/api/v1/paper/{matchingVersion}/{buildNumber}/download"
   filename = &"paper-{buildNumber}.jar"
-  filenameTemp = filename & ".temp"
+filenameTemp = filename & ".temp"
 
 echo &"Downloading {matchingVersion} #{pad(buildNumber, 3)}..."
 logVerbose &"Writing to {filenameTemp}...";
@@ -89,7 +114,6 @@ const BufLen = 1 shl 15
 var
   buf: array[BufLen, char]
   bytesRead = 0
-  writeStream: FileStream
 let bufPtr = buf.addr
 
 try:
