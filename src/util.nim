@@ -4,6 +4,7 @@ import strformat
 import times
 import math
 from ./builds import Build
+import ./errorcodes
 
 proc rel*(filename: string): string =
   joinPath(getCurrentDir(), filename)
@@ -90,3 +91,17 @@ proc getLogger*(verbose = false): (proc (msg: string)) =
 proc die*(msg: string, code = QuitFailure) {.noreturn.} =
   stderr.writeLine(msg)
   quit(code)
+
+proc moveFileOptional*(source, dest: string) =
+  try:
+    moveFile(source, dest)
+  except OSError:
+    if osLastError() != OSErrorCode(ENOENT):
+      raise
+
+proc removeFileOptional*(filename: string) =
+  try:
+    removeFile(filename)
+  except OSError:
+    if osLastError() != OSErrorCode(ENOENT):
+      raise

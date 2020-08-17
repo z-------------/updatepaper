@@ -3,11 +3,13 @@ import strutils
 import strformat
 import streams
 import terminal
+import os
 import ./util
 import ./versionhistory
 import ./matchversion
 import ./builds
 import ./client
+import ./errorcodes
 
 #
 # consts
@@ -40,7 +42,7 @@ let
   isVerbose = args["--verbose"]
   isDry = args["--dry"]
 
-  log = getLogger(isVerbose)
+  logVerbose = getLogger(isVerbose)
 
 var isDownloadInProgress = false
 
@@ -78,8 +80,8 @@ let
   filename = &"paper-{buildNumber}.jar"
   filenameTemp = filename & ".temp"
 
-echo &"Downloading {matchingVersion} {pad(buildNumber, 3)}..."
-log &"Writing to {filenameTemp}...";
+echo &"Downloading {matchingVersion} #{pad(buildNumber, 3)}..."
+logVerbose &"Writing to {filenameTemp}...";
 
 isDownloadInProgress = true
 
@@ -97,14 +99,58 @@ let
 try:
   writeStream = openFileStream(filenameTemp.rel, fmWrite)
 except IOError:
-  die "Failed to open write stream."
+  die "Couldn't open write stream."
 
 while not readStream.atEnd:
   bytesRead += readStream.readData(bufPtr, BufLen)
   writeStream.writeData(bufPtr, BufLen)
   stdout.write "\r", progressBar(bytesRead / contentLength, terminalWidth())
 
+readStream.close()
+writeStream.close()
 isDownloadInProgress = false
 echo "Download complete."
 
-# TODO: the rest
+if args["--keep"]:  # keep any old paper-xxx.jar with same build number
+  try:
+    moveFile(filename.rel, (&"paper-{buildNumber}.old.jar").rel)
+    logVerbose "Renamed old numbered jar to paper-{buildNumber}.old.jar."
+  except OSError:
+    if osLastError() == OSErrorCode(ENOENT):
+      logVerbose "No old numbered jar to rename. Continuing."
+    else:
+      die &"Couldn't rename {filename}."
+
+# rename to paper-xxx.jar, removing .temp suffix
+try:
+  moveFile(filenameTemp.rel, filename.rel)
+  logVerbose &"Renamed {filenameTemp} to {filename}."
+except OSError:
+  die &"Couldn't rename {filenameTemp}."
+
+if args["--replace"]:  # rename to paper.jar
+  # move any existing paper.jar to paper.temp.jar
+  try:
+    moveFileOptional("paper.jar".rel, "paper.temp.jar".rel)
+    logVerbose("Renamed old jar (if it exists) to paper.temp.jar.")
+  except:
+    die "Couldn't rename paper.jar."
+  
+  try:
+    moveFile(filename.rel, "paper.jar".rel)
+    logVerbose "Renamed new jar."
+  except:
+    die &"Couldn't rename {filename}."
+  
+  if args["--keep"]:  # keep any old paper.jar (now renamed paper.temp.jar)
+    try:
+      moveFileOptional("paper.temp.jar".rel, "paper.old.jar".rel)
+      logVerbose "Renamed temp jar (if it exists) to paper.old.jar."
+    except:
+      die "Couldn't rename paper.temp.jar."
+  else:  # delete any old paper.jar (now renamed paper.temp.jar)
+    try:
+      removeFileOptional("paper.temp.jar".rel)
+      logVerbose "Deleted temp jar (if it exists)."
+    except:
+      die "Couldn't delete paper.temp.jar."
