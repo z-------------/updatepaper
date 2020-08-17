@@ -1,5 +1,5 @@
 import json
-import re
+import nre
 import ./client
 
 const Url = "https://papermc.io/js/downloads.js"
@@ -23,8 +23,8 @@ proc getDownloadsIndex*(): JsonNode =
     if openCount > 1 and openCount == closeCount:
       endIdx = i + 1
       let sub = data[startIdx..<endIdx]
-        .replace(re"\/\/.*", "")
-        .replace(re",\s*(?=})", "")
+        .replace(re"\/\/.*", "")    # remove comments
+        .replace(re",\s*(?=})", "") # remove trailing comma
       return parseJson(sub)
 
 
