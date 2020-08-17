@@ -29,7 +29,7 @@ proc getNewerBuilds*(majorVer: string; curBuildNum: int): seq[Build] =
       isCiSkip = false
 
     let number = buildNode["number"].getInt
-    if number <= curBuildNum:
+    if number <= curBuildNum:  # curBuildNum is -1 if unset
       break
 
     for changeNode in buildNode["changeSet"]["items"].elems:

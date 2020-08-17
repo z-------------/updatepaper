@@ -9,7 +9,9 @@ let
   patApiVer = re"(?<=MC: )\d+\.\d+(\.\d+)?"
   patBuildNum = re"(?<=git-Paper-)\d+"
 
-proc readVersionHistoryFile*(): tuple[apiVer: string; buildNum: int] =
+type CurrentVersion* = tuple[apiVer: string; buildNum: int]
+
+proc readVersionHistoryFile*(): CurrentVersion =
   ## Read and parse the version history file.
   let
     data = readFile(Filename.rel)

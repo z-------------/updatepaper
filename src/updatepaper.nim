@@ -71,9 +71,15 @@ setControlCHook() do:
 # main
 #
 
+var currentVersion: CurrentVersion = (apiVer: "", buildNum: -1)
+if not args["-R"]:
+  try:
+    currentVersion = readVersionHistoryFile()
+  except:
+    stderr.write "Couldn't read version history file."
+
 # get matching major
 
-let currentVersion = readVersionHistoryFile()
 let matchingVersion = getMatchingVersion(currentVersion.apiVer)
 if matchingVersion == "":
   die(MsgNoNewVersion, 2)
