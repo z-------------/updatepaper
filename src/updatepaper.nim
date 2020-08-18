@@ -150,7 +150,7 @@ if args["--keep"]:  # keep any old paper-xxx.jar with same build number
     moveFile(filename.rel, (&"paper-{buildNumber}.old.jar").rel)
     logVerbose "Renamed old numbered jar to paper-{buildNumber}.old.jar."
   except OSError:
-    if osLastError() == OSErrorCode(ENOENT):
+    if osLastError().isEnoent:
       logVerbose "No old numbered jar to rename. Continuing."
     else:
       die &"Couldn't rename {filename}."

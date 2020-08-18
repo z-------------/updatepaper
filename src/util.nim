@@ -96,12 +96,12 @@ proc moveFileOptional*(source, dest: string) =
   try:
     moveFile(source, dest)
   except OSError:
-    if osLastError() != OSErrorCode(ENOENT):
+    if not osLastError().isEnoent:
       raise
 
 proc removeFileOptional*(filename: string) =
   try:
     removeFile(filename)
   except OSError:
-    if osLastError() != OSErrorCode(ENOENT):
+    if not osLastError().isEnoent:
       raise
