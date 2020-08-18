@@ -11,6 +11,7 @@ import ./matchversion
 import ./builds
 import ./client
 import ./errorcodes
+import ./version
 
 #
 # consts
@@ -19,16 +20,17 @@ import ./errorcodes
 const doc = """
 Usage:
   updatepaper [-dkRrv] [--build=<BUILD>]
-  updatepaper (-h | --help)
+  updatepaper ((-h | --help) | --version)
 
 Options:
-  -h --help       Show this help and exit.
+  -h --help       Print this help and exit.
   --build=<BUILD> Specify a build number to download.
   -d --dry        Only list updates, without downloading.
   -k --keep       Keep most recent existing jar file with `.old.' infix.
   -R              Ignore state file.
   -r --replace    Rename downloaded jar file, replacing any existing unless -k.
   -v --verbose    Enable verbose output.
+  --version       Print program version and exit.
 """
 
 const MsgNoNewVersion = "No matching new version available."
@@ -47,7 +49,7 @@ var # needed by SIGINT (Ctrl-C) handler
 #
 
 let
-  args = docopt(doc)
+  args = docopt(doc, version = "updatepaper " & PkgVersion)
   isVerbose = args["--verbose"]
   logVerbose = getLogger(isVerbose)
 

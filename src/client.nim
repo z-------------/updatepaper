@@ -1,10 +1,9 @@
 import httpclient
+import ./version
 
 export httpclient
 
-const
-  NimblePkgVersion {.strdefine.} = "Unknown"
-  headers = { "User-Agent": "updatepaper/" & NimblePkgVersion }
+const headers = { "User-Agent": "updatepaper/" & PkgVersion }
 
 proc client*(): HttpClient =
   var c = newHttpClient()
