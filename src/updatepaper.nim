@@ -48,10 +48,7 @@ var # needed by SIGINT (Ctrl-C) handler
 
 let
   args = docopt(doc)
-
   isVerbose = args["--verbose"]
-  isDry = args["--dry"]
-
   logVerbose = getLogger(isVerbose)
 
 #
@@ -101,7 +98,7 @@ for build in newerBuilds:
 
 # download new build
 
-if isDry:
+if args["--dry"]:
   quit()
 
 let buildNumber =
