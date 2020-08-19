@@ -160,8 +160,8 @@ except OSError:
 if args["--replace"]:  # rename to paper.jar
   # move any existing paper.jar to paper.temp.jar
   try:
-    moveFileOptional("paper.jar".abs, "paper.temp.jar".abs)
-    logVerbose("Renamed old jar (if it exists) to paper.temp.jar.")
+    if moveFileOptional("paper.jar".abs, "paper.temp.jar".abs):
+      logVerbose("Renamed old jar to paper.temp.jar.")
   except:
     die "Couldn't rename paper.jar."
   
@@ -173,13 +173,13 @@ if args["--replace"]:  # rename to paper.jar
   
   if args["--keep"]:  # keep any old paper.jar (now renamed paper.temp.jar)
     try:
-      moveFileOptional("paper.temp.jar".abs, "paper.old.jar".abs)
-      logVerbose "Renamed temp jar (if it exists) to paper.old.jar."
+      if moveFileOptional("paper.temp.jar".abs, "paper.old.jar".abs):
+        logVerbose "Renamed temp jar to paper.old.jar."
     except:
       die "Couldn't rename paper.temp.jar."
   else:  # delete any old paper.jar (now renamed paper.temp.jar)
     try:
-      removeFileOptional("paper.temp.jar".abs)
-      logVerbose "Deleted temp jar (if it exists)."
+      if removeFileOptional("paper.temp.jar".abs):
+        logVerbose "Deleted temp jar."
     except:
       die "Couldn't delete paper.temp.jar."

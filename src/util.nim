@@ -29,16 +29,22 @@ proc die*(msg: string, code = QuitFailure) {.noreturn.} =
   stderr.writeLine(msg)
   quit(code)
 
-proc moveFileOptional*(source, dest: string) =
+proc moveFileOptional*(source, dest: string): bool =
   try:
     moveFile(source, dest)
+    return true
   except OSError:
-    if not osLastError().isEnoent:
+    if osLastError().isEnoent:
+      return false
+    else:
       raise
 
-proc removeFileOptional*(filename: string) =
+proc removeFileOptional*(filename: string): bool =
   try:
     removeFile(filename)
+    return true
   except OSError:
-    if not osLastError().isEnoent:
+    if osLastError().isEnoent:
+      return false
+    else:
       raise
