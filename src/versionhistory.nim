@@ -14,7 +14,7 @@ let
 proc readVersionHistoryFile*(): CurrentVersion =
   ## Read and parse the version history file.
   let
-    data = readFile(Filename.rel)
+    data = readFile(Filename.abs)
     versionInfo = parseJson(data)["currentVersion"].getStr
     matchApiVer = versionInfo.find(patApiVer)
     matchBuildNum = versionInfo.find(patBuildNum)

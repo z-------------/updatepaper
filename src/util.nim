@@ -3,7 +3,7 @@ import strutils
 import math
 import ./errorcodes
 
-proc rel*(filename: string): string =
+proc abs*(filename: string): string =
   joinPath(getCurrentDir(), filename)
 
 proc print*(msg: string) {.inline.} =

@@ -60,7 +60,7 @@ setControlCHook() do:
   if isDownloadInProgress:
     writeStream.close()
     try:
-      removeFile(filenameTemp.rel)
+      removeFile(filenameTemp.abs)
       logVerbose &"Deleted {filenameTemp}."
     except:
       die &"Failed to delete {filenameTemp}."
@@ -113,7 +113,7 @@ logVerbose &"Writing to {filenameTemp}...";
 isDownloadInProgress = true
 
 try:
-  writeStream = openFileStream(filenameTemp.rel, fmWrite)
+  writeStream = openFileStream(filenameTemp.abs, fmWrite)
 except IOError:
   die "Couldn't open write stream."
 
@@ -142,7 +142,7 @@ waitFor (proc () {.async.} =
 
 if args["--keep"]:  # keep any old paper-xxx.jar with same build number
   try:
-    moveFile(filename.rel, (&"paper-{buildNumber}.old.jar").rel)
+    moveFile(filename.abs, (&"paper-{buildNumber}.old.jar").abs)
     logVerbose "Renamed old numbered jar to paper-{buildNumber}.old.jar."
   except OSError:
     if osLastError().isEnoent:
@@ -152,7 +152,7 @@ if args["--keep"]:  # keep any old paper-xxx.jar with same build number
 
 # rename to paper-xxx.jar, removing .temp suffix
 try:
-  moveFile(filenameTemp.rel, filename.rel)
+  moveFile(filenameTemp.abs, filename.abs)
   logVerbose &"Renamed {filenameTemp} to {filename}."
 except OSError:
   die &"Couldn't rename {filenameTemp}."
@@ -160,26 +160,26 @@ except OSError:
 if args["--replace"]:  # rename to paper.jar
   # move any existing paper.jar to paper.temp.jar
   try:
-    moveFileOptional("paper.jar".rel, "paper.temp.jar".rel)
+    moveFileOptional("paper.jar".abs, "paper.temp.jar".abs)
     logVerbose("Renamed old jar (if it exists) to paper.temp.jar.")
   except:
     die "Couldn't rename paper.jar."
   
   try:
-    moveFile(filename.rel, "paper.jar".rel)
+    moveFile(filename.abs, "paper.jar".abs)
     logVerbose "Renamed new jar."
   except:
     die &"Couldn't rename {filename}."
   
   if args["--keep"]:  # keep any old paper.jar (now renamed paper.temp.jar)
     try:
-      moveFileOptional("paper.temp.jar".rel, "paper.old.jar".rel)
+      moveFileOptional("paper.temp.jar".abs, "paper.old.jar".abs)
       logVerbose "Renamed temp jar (if it exists) to paper.old.jar."
     except:
       die "Couldn't rename paper.temp.jar."
   else:  # delete any old paper.jar (now renamed paper.temp.jar)
     try:
-      removeFileOptional("paper.temp.jar".rel)
+      removeFileOptional("paper.temp.jar".abs)
       logVerbose "Deleted temp jar (if it exists)."
     except:
       die "Couldn't delete paper.temp.jar."
