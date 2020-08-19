@@ -2,9 +2,11 @@ import json
 import times
 import strformat
 import strutils
+import nre
 import ./client
-import ./index
 import ./types
+
+const DownloadsIndexUrl = "https://papermc.io/js/downloads.js"
 
 #
 # helpers
@@ -33,6 +35,29 @@ proc buildNumberGt*(bnA, bnB: int): bool =
 
 proc buildUrl(majorVer: string): string =
   &"https://papermc.io/ci/job/Paper-{majorVer}/api/json?tree=builds[number,timestamp,changeSet[items[comment,commitId,msg]]]"
+
+proc getDownloadsIndex(): JsonNode =
+  ## Fetch and parse the JSON table of downloadables.
+  let data = client().getContent(DownloadsIndexUrl)
+  var
+    openCount = 0
+    closeCount = 0
+    startIdx = -1
+    endIdx = -1
+  for i in 0..high(data):
+    let c = data[i]
+    if c == '{':
+      openCount.inc
+      if startIdx == -1:
+        startIdx = i
+    elif c == '}':
+      closeCount.inc
+    if openCount > 1 and openCount == closeCount:
+      endIdx = i + 1
+      let sub = data[startIdx..<endIdx]
+        .replace(re"\/\/.*", "")    # remove comments
+        .replace(re",\s*(?=})", "") # remove trailing comma
+      return parseJson(sub)
 
 proc getMatchingVersion(currentApiVer: string): string =
   ## Given the current Paper version and a table of available downloads,
