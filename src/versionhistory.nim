@@ -2,9 +2,10 @@ import nre
 import json
 import strutils
 import ./util
-import ./types
 
 const Filename = "version_history.json"
+
+type CurrentVersion* = tuple[apiVer: string; buildNum: int]
 
 let
   patApiVer = re"(?<=MC: )\d+\.\d+(\.\d+)?"

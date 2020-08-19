@@ -6,7 +6,6 @@ import terminal
 import os
 import asyncdispatch
 import ./util
-import ./types
 import ./versionhistory
 import ./updates
 import ./client
@@ -91,7 +90,7 @@ if newerBuilds.len == 0:
 
 echo "\n", repeat(' ', 5), "Paper ", matchingVersion, "\n"
 for build in newerBuilds:
-  let formatted = formatBuildInfo(build, isVerbose)
+  let formatted = build.format(isVerbose)
   if formatted.strip.len > 0:
     echo formatted
 

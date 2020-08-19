@@ -4,9 +4,22 @@ import strformat
 import strutils
 import nre
 import ./client
-import ./types
+import ./util
+import ./versionhistory
 
 const DownloadsIndexUrl = "https://papermc.io/js/downloads.js"
+
+type
+  ChangeItem* = ref object
+    comment*: string
+    id*: string
+  Build* = ref object
+    number*: int
+    date*: DateTime
+    changeSet*: seq[ChangeItem]
+  Updates* = ref object
+    version*: string
+    builds*: seq[Build]
 
 #
 # helpers
@@ -98,6 +111,46 @@ proc getNewBuilds(majorVersion: string; currentBuildNumber: int): seq[Build] =
 
     if not isCiSkip:
       result.add(build)
+
+#
+# formatting procs
+#
+
+proc format(date: DateTime): tuple[date: string; time: string] =
+  result.date = [date.year.pad(4), date.month.ord.pad(2), date.monthday.pad(2)].join("-")
+  result.time = [date.hour.pad(2), date.minute.pad(2)].join(":")
+
+proc format*(build: Build, verbose = false): string =
+  var lines = newSeq[string]()
+
+  for i, changeItem in build.changeSet.pairs:  # for each changeItem (= commit)
+    var commentLines = newSeq[string]()
+
+    for line in changeItem.comment.splitLines:
+      if line.strip.len > 0:
+        commentLines.add(line)
+        if not verbose:  # only include one line if not verbose
+          break
+
+    if i == 0 and verbose:
+      let dateFmt = build.date.format
+      commentLines[0].add(" - " & dateFmt.date & " " & dateFmt.time)  # show build date alongside topmost commit
+    for j in 1..high(commentLines):
+      commentLines[j] = repeat(' ', 15) & commentLines[j]
+
+    let
+      buildNumPart =
+        if i == 0: &"#{pad(build.number, 3)} "
+        else: ""
+      commentJoined = commentLines.join("\n")
+    lines.add(&"{buildNumPart}[{changeItem.id[0..6]}] {commentJoined}\n")
+  
+  if lines.len == 0:
+    return ""
+
+  for i in 1..high(lines):
+    lines[i] = repeat(' ', 5) & lines[i]
+  return lines.join("\n")
 
 #
 # export
