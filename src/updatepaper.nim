@@ -47,10 +47,7 @@ var # needed by SIGINT (Ctrl-C) handler
 # parse options
 #
 
-let
-  args = docopt(doc, version = "updatepaper " & PkgVersion)
-  isVerbose = args["--verbose"]
-  logVerbose = getLogger(isVerbose)
+let args = docopt(doc, version = "updatepaper " & PkgVersion)
 
 #
 # signal handlers
@@ -90,7 +87,7 @@ if newerBuilds.len == 0:
 
 echo "\n", repeat(' ', 5), "Paper ", matchingVersion, "\n"
 for build in newerBuilds:
-  let formatted = build.format(isVerbose)
+  let formatted = build.format(args["--verbose"])
   if formatted.strip.len > 0:
     echo formatted
 

@@ -19,11 +19,9 @@ proc progressBar*(p: float64; l = 75; c1 = '#'; c2 = '-'): string =
   let lm = (l - 2 - 5).float64  # 2 for the [], 5 for _000%
   "[" & repeat(c1, (p * lm).round.int) & repeat(c2, ((1 - p) * lm).round.int) & "] " & pad((p * 100).round.int, 3, ' ') & "%"
 
-proc getLogger*(verbose = false): (proc (msg: string)) =
-  if verbose:
-    (proc (msg: string) = stdout.writeLine(msg))
-  else:
-    (proc (msg: string) = discard)
+template logVerbose*(msg: string) =
+  if args["--verbose"]:
+    stdout.writeLine(msg)
 
 proc die*(msg: string, code = QuitFailure) {.noreturn.} =
   stderr.writeLine(msg)
