@@ -6,9 +6,9 @@ import terminal
 import os
 import asyncdispatch
 import ./util
+import ./types
 import ./versionhistory
-import ./matchversion
-import ./builds
+import ./updates
 import ./client
 import ./errorcodes
 import ./version
@@ -78,15 +78,12 @@ if not args["-R"]:
   except:
     stderr.write "Couldn't read version history file."
 
-# get matching major
+# get new version + builds
 
-let matchingVersion = getMatchingVersion(currentVersion.apiVer)
-if matchingVersion == "":
-  die(MsgNoNewVersion, 2)
-
-# get new builds
-
-let newerBuilds = getNewerBuilds(matchingVersion.semverGetMajor, currentVersion.buildNum)
+let
+  updateInfo = getUpdates(currentVersion)
+  newerBuilds = updateInfo.builds
+  matchingVersion = updateInfo.version
 if newerBuilds.len == 0:
   die(MsgNoNewVersion, 2)
 

@@ -2,14 +2,13 @@ import nre
 import json
 import strutils
 import ./util
+import ./types
 
 const Filename = "version_history.json"
 
 let
   patApiVer = re"(?<=MC: )\d+\.\d+(\.\d+)?"
   patBuildNum = re"(?<=git-Paper-)\d+"
-
-type CurrentVersion* = tuple[apiVer: string; buildNum: int]
 
 proc readVersionHistoryFile*(): CurrentVersion =
   ## Read and parse the version history file.
