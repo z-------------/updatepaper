@@ -29,7 +29,7 @@ proc die*(msg: string, code = QuitFailure) {.noreturn.} =
   stderr.writeLine(msg)
   quit(code)
 
-proc moveFileOptional*(source, dest: string): bool =
+proc moveFileOptional*(source, dest: string): bool {.discardable.} =
   try:
     moveFile(source, dest)
     return true
@@ -39,7 +39,7 @@ proc moveFileOptional*(source, dest: string): bool =
     else:
       raise
 
-proc removeFileOptional*(filename: string): bool =
+proc removeFileOptional*(filename: string): bool {.discardable.} =
   try:
     removeFile(filename)
     return true
