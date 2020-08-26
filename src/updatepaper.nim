@@ -72,7 +72,7 @@ if not args["-R"]:
   try:
     currentVersion = readVersionHistoryFile()
   except:
-    stderr.write "Couldn't read version history file."
+    stderr.write "Couldn't read version history file.\n"
 
 # get new version + builds
 
