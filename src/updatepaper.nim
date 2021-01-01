@@ -7,6 +7,7 @@ import os
 import asyncdispatch
 import sugar
 import options
+import gara
 import ./util
 import ./versionhistory
 import ./updates
@@ -107,12 +108,9 @@ let
       -1
   chosenBuild =
     if chosenBuildNumber != -1:
-      block:
-        let maybeChosenBuild = newerBuilds.filterOne(build => build.number == chosenBuildNumber)
-        if maybeChosenBuild.isNone:
-          die($"Build #{chosenBuildNumber} not found.")
-        else:
-          maybeChosenBuild.get
+      match newerBuilds.filterOne(build => build.number == chosenBuildNumber):
+        Some(@build): build
+        _: die($"Build #{chosenBuildNumber} not found.")
     else:
       newerBuilds[0]
   url = chosenBuild.downloadUrl

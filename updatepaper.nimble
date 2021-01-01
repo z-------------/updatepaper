@@ -13,3 +13,4 @@ bin           = @["updatepaper"]
 
 requires "nim >= 1.2.6"
 requires "docopt >= 0.6.8"
+requires "gara >= 0.2.0"
