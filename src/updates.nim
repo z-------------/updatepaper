@@ -103,7 +103,8 @@ proc getNewBuilds(majorVersion: string; currentBuildNumber: int): seq[Build] =
   for buildNode in buildsJson.elems.reverse:
     var
       build = Build()
-      isCiSkip = false
+      changesCount = 0
+      ciSkipChangesCount = 0
 
     let number = buildNode["build"].getInt
     if number <= currentBuildNumber:  # -1 if unset
@@ -111,9 +112,9 @@ proc getNewBuilds(majorVersion: string; currentBuildNumber: int): seq[Build] =
 
     for changeNode in buildNode["changes"].elems:
       let comment = changeNode["message"].getStr
+      changesCount += 1
       if comment.startsWith("[CI-SKIP]"):
-        isCiSkip = true  # TODO: we should not filter out builds where only some commits are CI-SKIP
-        break
+        ciSkipChangesCount += 1
       let changeItem = ChangeItem(comment: comment, id: changeNode["commit"].getStr)
       build.changeSet.add(changeItem)
 
@@ -122,7 +123,7 @@ proc getNewBuilds(majorVersion: string; currentBuildNumber: int): seq[Build] =
     build.version = buildNode["version"].getStr
     build.filename = buildNode["downloads"]["application"]["name"].getStr
 
-    if not isCiSkip:
+    if ciSkipChangesCount < changesCount:
       result.add(build)
 
 #
