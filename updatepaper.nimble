@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.0.0"
+version       = "0.0.1"
 author        = "Zack Guard"
 description   = "Command line interface for updating Paper. Clone of my original update-paper for Node.js."
 license       = "MIT"
