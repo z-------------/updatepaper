@@ -3,3 +3,4 @@ release
 
 version_history.json
 *.jar
+*.exe

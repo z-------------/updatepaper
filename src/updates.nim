@@ -15,11 +15,16 @@ type
     id*: string
   Build* = ref object
     number*: int
+    version*: string
+    filename*: string
     date*: DateTime
     changeSet*: seq[ChangeItem]
   Updates* = ref object
     version*: string
     builds*: seq[Build]
+
+proc downloadUrl*(b: Build): string =
+  &"https://papermc.io/api/v2/projects/paper/versions/{b.version}/builds/{b.number}/downloads/{b.filename}"
 
 #
 # helpers
@@ -47,7 +52,13 @@ proc buildNumberGt*(bnA, bnB: int): bool =
   bnA == -1 or bnB > bnA
 
 proc buildUrl(majorVer: string): string =
-  &"https://papermc.io/ci/job/Paper-{majorVer}/api/json?tree=builds[number,timestamp,changeSet[items[comment,commitId,msg]]]"
+  &"https://papermc.io/api/v2/projects/paper/version_group/{majorVer}/builds"
+
+iterator reverse[T](s: seq[T]): T =
+  var i = s.high
+  while i >= 0:
+    yield s[i]
+    i -= 1
 
 proc getDownloadsIndex(): JsonNode =
   ## Fetch and parse the JSON table of downloadables.
@@ -89,25 +100,27 @@ proc getNewBuilds(majorVersion: string; currentBuildNumber: int): seq[Build] =
     data = client().getContent(buildUrl(majorVersion))
     buildsJson = parseJson(data)["builds"]
 
-  for buildNode in buildsJson.elems:
+  for buildNode in buildsJson.elems.reverse:
     var
       build = Build()
       isCiSkip = false
 
-    let number = buildNode["number"].getInt
+    let number = buildNode["build"].getInt
     if number <= currentBuildNumber:  # -1 if unset
       break
 
-    for changeNode in buildNode["changeSet"]["items"].elems:
-      let comment = changeNode["comment"].getStr
+    for changeNode in buildNode["changes"].elems:
+      let comment = changeNode["message"].getStr
       if comment.startsWith("[CI-SKIP]"):
-        isCiSkip = true
+        isCiSkip = true  # TODO: we should not filter out builds where only some commits are CI-SKIP
         break
-      let changeItem = ChangeItem(comment: comment, id: changeNode["commitId"].getStr)
+      let changeItem = ChangeItem(comment: comment, id: changeNode["commit"].getStr)
       build.changeSet.add(changeItem)
 
     build.number = number
-    build.date = times.fromUnixFloat(buildNode["timestamp"].getFloat / 1000).inZone(local())
+    build.date = times.parse(buildNode["time"].getStr, "YYYY-MM-dd'T'HH:mm:ss'.'fff'Z'", utc()).inZone(local())
+    build.version = buildNode["version"].getStr
+    build.filename = buildNode["downloads"]["application"]["name"].getStr
 
     if not isCiSkip:
       result.add(build)

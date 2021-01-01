@@ -1,6 +1,8 @@
 import os
 import strutils
 import math
+import sugar
+import options
 import ./errorcodes
 
 proc abs*(filename: string): string =
@@ -46,3 +48,9 @@ proc removeFileOptional*(filename: string): bool {.discardable.} =
       return false
     else:
       raise
+
+proc filterOne*[T](xs: seq[T]; predicate: T -> bool): Option[T] =
+  for x in xs:
+    if predicate(x):
+      return some(x)
+  none(T)

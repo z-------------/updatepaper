@@ -5,6 +5,8 @@ import streams
 import terminal
 import os
 import asyncdispatch
+import sugar
+import options
 import ./util
 import ./versionhistory
 import ./updates
@@ -86,22 +88,37 @@ if newerBuilds.len == 0:
 # report changes
 
 echo "\n", repeat(' ', 5), "Paper ", matchingVersion, "\n"
-for build in newerBuilds:
-  let formatted = build.format(args["--verbose"])
-  if formatted.strip.len > 0:
-    echo formatted
+# for build in newerBuilds:
+#   let formatted = build.format(args["--verbose"])
+#   if formatted.strip.len > 0:
+#     echo formatted
 
 # download new build
 
 if args["--dry"]:
   quit()
 
-let buildNumber =
-  if $args["--build"] != "nil": $args["--build"]
-  else: $newerBuilds[0].number
 let
-  url = &"https://papermc.io/api/v1/paper/{matchingVersion}/{buildNumber}/download"
+  chosenBuildArg = $args["--build"]
+  chosenBuildNumber =
+    if chosenBuildArg != "nil":
+      chosenBuildArg.parseInt
+    else:
+      -1
+  chosenBuild =
+    if chosenBuildNumber != -1:
+      block:
+        let maybeChosenBuild = newerBuilds.filterOne(build => build.number == chosenBuildNumber)
+        if maybeChosenBuild.isNone:
+          die($"Build #{chosenBuildNumber} not found.")
+        else:
+          maybeChosenBuild.get
+    else:
+      newerBuilds[0]
+  url = chosenBuild.downloadUrl
+  buildNumber = chosenBuild.number
   filename = &"paper-{buildNumber}.jar"
+
 filenameTemp = filename & ".temp"
 
 echo &"Downloading {matchingVersion} #{pad(buildNumber, 3)}..."
