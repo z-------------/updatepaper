@@ -88,10 +88,10 @@ if newerBuilds.len == 0:
 # report changes
 
 echo "\n", repeat(' ', 5), "Paper ", matchingVersion, "\n"
-# for build in newerBuilds:
-#   let formatted = build.format(args["--verbose"])
-#   if formatted.strip.len > 0:
-#     echo formatted
+for build in newerBuilds:
+  let formatted = build.format(args["--verbose"])
+  if formatted.strip.len > 0:
+    echo formatted
 
 # download new build
 
