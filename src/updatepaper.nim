@@ -137,11 +137,14 @@ waitFor (proc () {.async.} =
       readStream = response.bodyStream
     var bytesRead = 0
 
+    stdout.write '\n'
     while true:
       let (hasMore, data) = await readStream.read()
       bytesRead += data.len
       writeStream.write(data)
-      stdout.write "\r", progressBar(bytesRead / contentLength, terminalWidth())
+      stdout.cursorUp(1)
+      stdout.write '\r'
+      stdout.writeLine progressBar(bytesRead / contentLength, terminalWidth() - 1)
       if not hasMore:
         break
 
